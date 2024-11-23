@@ -187,7 +187,7 @@ export const updateAppointment = async (req, res) => {
     res.json(appointment);
   } catch (error) {
     console.error(`Update Appointment Error: ${error.message}`);
-    res.status(500).json({ message: 'Server error while updating appointment' });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

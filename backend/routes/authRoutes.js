@@ -1,7 +1,7 @@
 // routes/authRoutes.js
 
 import express from 'express';
-import { registerUser, loginUser } from '../controllers/authController.js';
+import { register, login } from '../controllers/authController.js';
 import { body } from 'express-validator';
 
 const router = express.Router();
@@ -12,7 +12,7 @@ const router = express.Router();
  * @access  Public
  */
 router.post(
-  '/register',
+  '/registerUser',
   [
     // Validation middleware using express-validator
     body('name')
@@ -32,7 +32,7 @@ router.post(
       .isIn(['admin', 'doctor', 'customer'])
       .withMessage('Role must be admin, doctor, or customer'),
   ],
-  registerUser
+  register
 );
 
 /**
@@ -41,7 +41,7 @@ router.post(
  * @access  Public
  */
 router.post(
-  '/login',
+  '/loginUser',
   [
     body('email')
       .isEmail()
@@ -51,7 +51,7 @@ router.post(
       .notEmpty()
       .withMessage('Password is required'),
   ],
-  loginUser
+  login
 );
 
 export default router;
