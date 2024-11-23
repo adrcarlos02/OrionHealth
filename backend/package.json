@@ -1,0 +1,24 @@
+{
+  "name": "clinic-backend",
+  "version": "1.0.0",
+  "description": "Backend for Clinic Website",
+  "main": "index.js",
+  "type": "module", 
+    "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-validator": "^6.14.3",
+    "jsonwebtoken": "^9.0.0",
+    "mysql2": "^3.3.1",
+    "sequelize": "^6.32.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
