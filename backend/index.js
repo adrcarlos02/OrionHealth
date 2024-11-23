@@ -111,21 +111,27 @@ app.use((err, req, res, next) => {
 // Database Synchronization and Server Start
 // =====================
 const PORT = process.env.PORT || 5005;
+const isTestEnv = process.env.NODE_ENV === 'test';
+
+let server; // Declare server variable to hold the server instance
 
 sequelize
   .authenticate()
   .then(() => {
     console.log('Database connection established successfully.');
-    return sequelize.sync({ alter: true }); // Use migrations for production
+    return sequelize.sync({ alter: !isTestEnv }); // Disable schema alterations in tests
   })
   .then(() => {
     console.log('Database & tables synchronized!');
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+    if (!isTestEnv) {
+      server = app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    }
   })
   .catch((err) => {
     console.error('Unable to connect to the database:', err);
+    process.exit(1); // Exit the process with failure
   });
 
-export default app; // Export for testing purposes
+export { app, server }; // Export both app and server for testing purposes

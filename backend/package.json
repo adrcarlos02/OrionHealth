@@ -1,5 +1,5 @@
 {
-  "name": "clinic-backend",
+  "name": "orionhealth-backend",
   "version": "1.0.0",
   "description": "Backend for Clinic Website",
   "main": "index.js",
@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "jest --detectOpenHandles --forceExit"
+   "test": "NODE_ENV=test node --experimental-vm-modules node_modules/jest/bin/jest.js --detectOpenHandles --forceExit"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -24,6 +24,9 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/preset-env": "^7.26.0",
+    "babel-jest": "^29.7.0",
     "jest": "^29.7.0",
     "nodemon": "^3.0.1",
     "supertest": "^7.0.0"

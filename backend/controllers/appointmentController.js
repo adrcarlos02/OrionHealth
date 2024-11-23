@@ -3,6 +3,7 @@
 import { Appointment, Timeslot, Doctor, User } from '../models/index.js';
 import { validationResult } from 'express-validator';
 
+
 /**
  * Create a new appointment.
  * Only accessible by customers.

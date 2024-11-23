@@ -3,6 +3,7 @@
 import { Timeslot, Doctor, Appointment } from '../models/index.js';
 import { validationResult } from 'express-validator';
 
+
 /**
  * Create a new timeslot for a doctor.
  * Only accessible by admins or the doctor themselves.
