@@ -20,15 +20,32 @@ const router = express.Router();
  */
 router.post(
   '/',
-  authenticateToken,
-  authorizeRoles('admin', 'doctor'),
+  authenticateToken, // Ensure the user is authenticated
+  authorizeRoles('admin', 'doctor'), // Admins and Doctors can create timeslots
   [
-    body('doctor_id').isInt().withMessage('Valid doctor_id is required'),
-    body('date').isISO8601().withMessage('Valid date is required'),
-    body('start_time').matches(/^([0-1]\d|2[0-3]):([0-5]\d)$/).withMessage('Valid start_time is required (HH:MM)'),
-    body('end_time').matches(/^([0-1]\d|2[0-3]):([0-5]\d)$/).withMessage('Valid end_time is required (HH:MM)'),
-    body('status').isIn(['available', 'booked', 'unavailable']).withMessage('Invalid status'),
-    // Additional validations as needed
+    body('doctor_id')
+      .isInt()
+      .withMessage('Valid doctor_id is required')
+      .notEmpty()
+      .withMessage('doctor_id cannot be empty'),
+    body('date')
+      .isISO8601()
+      .withMessage('Valid date is required')
+      .notEmpty()
+      .withMessage('Date cannot be empty'),
+    body('start_time')
+      .matches(/^([0-1]\d|2[0-3]):([0-5]\d)$/)
+      .withMessage('Start time must be in HH:MM format')
+      .notEmpty()
+      .withMessage('Start time cannot be empty'),
+    body('end_time')
+      .matches(/^([0-1]\d|2[0-3]):([0-5]\d)$/)
+      .withMessage('End time must be in HH:MM format')
+      .notEmpty()
+      .withMessage('End time cannot be empty'),
+    body('status')
+      .isIn(['available', 'booked', 'unavailable'])
+      .withMessage('Status must be available, booked, or unavailable'),
   ],
   createTimeslot
 );
@@ -48,7 +65,13 @@ router.get('/', authenticateToken, getAllTimeslots);
 router.get(
   '/:id',
   authenticateToken,
-  [param('id').isInt().withMessage('Timeslot ID must be an integer')],
+  [
+    param('id')
+      .isInt()
+      .withMessage('Timeslot ID must be an integer')
+      .notEmpty()
+      .withMessage('Timeslot ID cannot be empty'),
+  ],
   getTimeslotById
 );
 
@@ -60,8 +83,13 @@ router.get(
 router.put(
   '/:id',
   authenticateToken,
+  authorizeRoles('admin', 'doctor'), // Admins and Doctors can update timeslots
   [
-    param('id').isInt().withMessage('Timeslot ID must be an integer'),
+    param('id')
+      .isInt()
+      .withMessage('Timeslot ID must be an integer')
+      .notEmpty()
+      .withMessage('Timeslot ID cannot be empty'),
     // Add body validations as needed for fields being updated
   ],
   updateTimeslot
@@ -75,8 +103,14 @@ router.put(
 router.delete(
   '/:id',
   authenticateToken,
-  authorizeRoles('admin', 'doctor'),
-  [param('id').isInt().withMessage('Timeslot ID must be an integer')],
+  authorizeRoles('admin', 'doctor'), // Admins and Doctors can delete timeslots
+  [
+    param('id')
+      .isInt()
+      .withMessage('Timeslot ID must be an integer')
+      .notEmpty()
+      .withMessage('Timeslot ID cannot be empty'),
+  ],
   deleteTimeslot
 );
 

@@ -20,19 +20,55 @@ const router = express.Router();
  */
 router.post(
   '/',
-  authenticateToken,
-  authorizeRoles('admin'),
+  authenticateToken, // Ensure the user is authenticated
+  authorizeRoles('admin'), // Only admins can create doctor profiles
   [
-    body('user_id').isInt().withMessage('Valid user_id is required'),
-    body('specialty').notEmpty().withMessage('Specialty is required'),
-    body('degree').notEmpty().withMessage('Degree is required'),
-    body('experience').isInt({ min: 0 }).withMessage('Experience must be a positive integer'),
-    body('fees').isDecimal({ decimal_digits: '0,2' }).withMessage('Valid fees are required'),
-    body('address_line1').notEmpty().withMessage('Address Line 1 is required'),
-    body('city').notEmpty().withMessage('City is required'),
-    body('state').notEmpty().withMessage('State is required'),
-    body('postal_code').notEmpty().withMessage('Postal Code is required'),
-    // Additional validations as needed
+    // Validation middleware using express-validator
+    body('user_id')
+      .isInt()
+      .withMessage('Valid user_id is required')
+      .notEmpty()
+      .withMessage('user_id cannot be empty'),
+    body('specialty')
+      .notEmpty()
+      .withMessage('Specialty is required')
+      .isString()
+      .withMessage('Specialty must be a string'),
+    body('degree')
+      .notEmpty()
+      .withMessage('Degree is required')
+      .isString()
+      .withMessage('Degree must be a string'),
+    body('experience')
+      .isInt({ min: 0 })
+      .withMessage('Experience must be a non-negative integer'),
+    body('fees')
+      .isDecimal({ decimal_digits: '0,2' })
+      .withMessage('Fees must be a decimal with up to two decimal places'),
+    body('address_line1')
+      .notEmpty()
+      .withMessage('Address Line 1 is required')
+      .isString()
+      .withMessage('Address Line 1 must be a string'),
+    body('city')
+      .notEmpty()
+      .withMessage('City is required')
+      .isString()
+      .withMessage('City must be a string'),
+    body('state')
+      .notEmpty()
+      .withMessage('State is required')
+      .isString()
+      .withMessage('State must be a string'),
+    body('postal_code')
+      .notEmpty()
+      .withMessage('Postal Code is required')
+      .isString()
+      .withMessage('Postal Code must be a string'),
+    // Optional fields
+    body('about').optional().isString().withMessage('About must be a string'),
+    body('address_line2').optional().isString().withMessage('Address Line 2 must be a string'),
+    body('profile_image_url').optional().isURL().withMessage('Profile Image URL must be a valid URL'),
   ],
   createDoctor
 );
@@ -52,21 +88,31 @@ router.get('/', authenticateToken, getAllDoctors);
 router.get(
   '/:id',
   authenticateToken,
-  [param('id').isInt().withMessage('Doctor ID must be an integer')],
+  [
+    param('id')
+      .isInt()
+      .withMessage('Doctor ID must be an integer')
+      .notEmpty()
+      .withMessage('Doctor ID cannot be empty'),
+  ],
   getDoctorById
 );
 
 /**
  * @route   PUT /api/doctors/:id
  * @desc    Update a doctor profile
- * @access  Admin or Doctor
+ * @access  Admin or Doctor themselves
  */
 router.put(
   '/:id',
   authenticateToken,
   [
-    param('id').isInt().withMessage('Doctor ID must be an integer'),
-    // Add body validations as needed for fields being updated
+    param('id')
+      .isInt()
+      .withMessage('Doctor ID must be an integer')
+      .notEmpty()
+      .withMessage('Doctor ID cannot be empty'),
+    // Additional validations can be added for fields being updated
   ],
   updateDoctor
 );
@@ -79,8 +125,14 @@ router.put(
 router.delete(
   '/:id',
   authenticateToken,
-  authorizeRoles('admin'),
-  [param('id').isInt().withMessage('Doctor ID must be an integer')],
+  authorizeRoles('admin'), // Only admins can delete doctor profiles
+  [
+    param('id')
+      .isInt()
+      .withMessage('Doctor ID must be an integer')
+      .notEmpty()
+      .withMessage('Doctor ID cannot be empty'),
+  ],
   deleteDoctor
 );
 

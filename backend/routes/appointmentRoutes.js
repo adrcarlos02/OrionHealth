@@ -21,11 +21,18 @@ const router = express.Router();
 router.post(
   '/',
   authenticateToken,
-  authorizeRoles('customer'),
+  authorizeRoles('customer'), // Only customers can create appointments
   [
-    body('timeslot_id').isInt().withMessage('Valid timeslot_id is required'),
-    body('notes').optional().isString().withMessage('Notes must be a string'),
-    // Additional validations as needed
+    body('timeslot_id')
+      .isInt()
+      .withMessage('Valid timeslot_id is required')
+      .notEmpty()
+      .withMessage('timeslot_id cannot be empty'),
+    body('notes')
+      .optional()
+      .isString()
+      .withMessage('Notes must be a string'),
+    // Add more validations as needed
   ],
   createAppointment
 );
@@ -45,7 +52,13 @@ router.get('/', authenticateToken, getAllAppointments);
 router.get(
   '/:id',
   authenticateToken,
-  [param('id').isInt().withMessage('Appointment ID must be an integer')],
+  [
+    param('id')
+      .isInt()
+      .withMessage('Appointment ID must be an integer')
+      .notEmpty()
+      .withMessage('Appointment ID cannot be empty'),
+  ],
   getAppointmentById
 );
 
@@ -57,8 +70,13 @@ router.get(
 router.put(
   '/:id',
   authenticateToken,
+  authorizeRoles('admin', 'customer'), // Admins and Customers can update appointments
   [
-    param('id').isInt().withMessage('Appointment ID must be an integer'),
+    param('id')
+      .isInt()
+      .withMessage('Appointment ID must be an integer')
+      .notEmpty()
+      .withMessage('Appointment ID cannot be empty'),
     // Add body validations as needed for fields being updated
   ],
   updateAppointment
@@ -72,9 +90,13 @@ router.put(
 router.delete(
   '/:id',
   authenticateToken,
+  authorizeRoles('admin', 'customer'), // Admins and Customers can delete appointments
   [
-    param('id').isInt().withMessage('Appointment ID must be an integer'),
-    // Optionally, enforce role-based access here if not handled in controller
+    param('id')
+      .isInt()
+      .withMessage('Appointment ID must be an integer')
+      .notEmpty()
+      .withMessage('Appointment ID cannot be empty'),
   ],
   deleteAppointment
 );

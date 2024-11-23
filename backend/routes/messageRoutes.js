@@ -20,11 +20,19 @@ const router = express.Router();
  */
 router.post(
   '/',
-  authenticateToken,
+  authenticateToken, // Ensure the user is authenticated
   [
-    body('receiver_id').isInt().withMessage('Valid receiver_id is required'),
-    body('content').notEmpty().withMessage('Content is required'),
-    // Additional validations as needed
+    body('receiver_id')
+      .isInt()
+      .withMessage('Valid receiver_id is required')
+      .notEmpty()
+      .withMessage('receiver_id cannot be empty'),
+    body('content')
+      .notEmpty()
+      .withMessage('Content is required')
+      .isString()
+      .withMessage('Content must be a string'),
+    // Add more validations as needed
   ],
   sendMessage
 );
@@ -44,7 +52,13 @@ router.get('/', authenticateToken, getAllMessages);
 router.get(
   '/:id',
   authenticateToken,
-  [param('id').isInt().withMessage('Message ID must be an integer')],
+  [
+    param('id')
+      .isInt()
+      .withMessage('Message ID must be an integer')
+      .notEmpty()
+      .withMessage('Message ID cannot be empty'),
+  ],
   getMessageById
 );
 
@@ -56,7 +70,13 @@ router.get(
 router.put(
   '/:id/read',
   authenticateToken,
-  [param('id').isInt().withMessage('Message ID must be an integer')],
+  [
+    param('id')
+      .isInt()
+      .withMessage('Message ID must be an integer')
+      .notEmpty()
+      .withMessage('Message ID cannot be empty'),
+  ],
   markMessageAsRead
 );
 
@@ -68,7 +88,13 @@ router.put(
 router.delete(
   '/:id',
   authenticateToken,
-  [param('id').isInt().withMessage('Message ID must be an integer')],
+  [
+    param('id')
+      .isInt()
+      .withMessage('Message ID must be an integer')
+      .notEmpty()
+      .withMessage('Message ID cannot be empty'),
+  ],
   deleteMessage
 );
 
