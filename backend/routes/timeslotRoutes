@@ -1,0 +1,83 @@
+// routes/timeslotRoutes.js
+
+import express from 'express';
+import {
+  createTimeslot,
+  getAllTimeslots,
+  getTimeslotById,
+  updateTimeslot,
+  deleteTimeslot,
+} from '../controllers/timeslotController.js';
+import { body, param } from 'express-validator';
+import { authenticateToken, authorizeRoles } from '../middleware/authMiddleware.js';
+
+const router = express.Router();
+
+/**
+ * @route   POST /api/timeslots
+ * @desc    Create a new timeslot
+ * @access  Admin or Doctor
+ */
+router.post(
+  '/',
+  authenticateToken,
+  authorizeRoles('admin', 'doctor'),
+  [
+    body('doctor_id').isInt().withMessage('Valid doctor_id is required'),
+    body('date').isISO8601().withMessage('Valid date is required'),
+    body('start_time').matches(/^([0-1]\d|2[0-3]):([0-5]\d)$/).withMessage('Valid start_time is required (HH:MM)'),
+    body('end_time').matches(/^([0-1]\d|2[0-3]):([0-5]\d)$/).withMessage('Valid end_time is required (HH:MM)'),
+    body('status').isIn(['available', 'booked', 'unavailable']).withMessage('Invalid status'),
+    // Additional validations as needed
+  ],
+  createTimeslot
+);
+
+/**
+ * @route   GET /api/timeslots
+ * @desc    Get all timeslots
+ * @access  Authenticated Users
+ */
+router.get('/', authenticateToken, getAllTimeslots);
+
+/**
+ * @route   GET /api/timeslots/:id
+ * @desc    Get a timeslot by ID
+ * @access  Authenticated Users
+ */
+router.get(
+  '/:id',
+  authenticateToken,
+  [param('id').isInt().withMessage('Timeslot ID must be an integer')],
+  getTimeslotById
+);
+
+/**
+ * @route   PUT /api/timeslots/:id
+ * @desc    Update a timeslot
+ * @access  Admin or Doctor
+ */
+router.put(
+  '/:id',
+  authenticateToken,
+  [
+    param('id').isInt().withMessage('Timeslot ID must be an integer'),
+    // Add body validations as needed for fields being updated
+  ],
+  updateTimeslot
+);
+
+/**
+ * @route   DELETE /api/timeslots/:id
+ * @desc    Delete a timeslot
+ * @access  Admin or Doctor
+ */
+router.delete(
+  '/:id',
+  authenticateToken,
+  authorizeRoles('admin', 'doctor'),
+  [param('id').isInt().withMessage('Timeslot ID must be an integer')],
+  deleteTimeslot
+);
+
+export default router;
