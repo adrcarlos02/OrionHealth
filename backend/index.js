@@ -18,7 +18,9 @@ import appointmentRoutes from './routes/appointmentRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
 
 // Import middleware
-import { authenticateToken, authorizeRoles } from './middleware/authMiddleware.js';
+import authenticateToken from './middleware/authenticateToken.js';
+import { authorizeRoles } from './middleware/authorize.js'; // Named import
+import { errorHandler } from './middleware/errorHandler.js'; // Named import
 
 const app = express();
 
@@ -74,23 +76,18 @@ app.get('/', (req, res) => {
 });
 
 // =====================
-// Protected Route Examples
+// Example Protected Routes
 // =====================
 
-// Example of a route accessible by any authenticated user
+// Route accessible by any authenticated user
 app.get('/api/protected', authenticateToken, (req, res) => {
   res.json({ message: 'This is a protected route', user: req.user });
 });
 
-// Example of a route accessible only by admins
-app.get(
-  '/api/admin',
-  authenticateToken,
-  authorizeRoles('admin'),
-  (req, res) => {
-    res.json({ message: 'Welcome, Admin!' });
-  }
-);
+// Route accessible only by admins
+app.get('/api/admin', authenticateToken, authorizeRoles('admin'), (req, res) => {
+  res.json({ message: 'Welcome, Admin!' });
+});
 
 // =====================
 // Error-Handling Middleware
@@ -102,10 +99,7 @@ app.use((req, res, next) => {
 });
 
 // Global Error Handler
-app.use((err, req, res, next) => {
-  console.error(`Unhandled Error: ${err.stack}`);
-  res.status(500).json({ message: 'Internal Server Error' });
-});
+app.use(errorHandler);
 
 // =====================
 // Database Synchronization and Server Start

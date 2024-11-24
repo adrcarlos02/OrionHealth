@@ -9,7 +9,8 @@ import {
   deleteMessage,
 } from '../controllers/messageController.js';
 import { body, param } from 'express-validator';
-import { authenticateToken, authorizeRoles } from '../middleware/authMiddleware.js';
+import authenticateToken from '../middleware/authenticateToken.js';
+
 
 const router = express.Router();
 

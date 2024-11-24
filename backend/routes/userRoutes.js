@@ -2,56 +2,113 @@
 
 import express from 'express';
 import {
-  getUserProfile,
-  updateUserProfile,
-  deleteUserProfile,
+  createUser,
+  getAllUsers,
+  getUserById,
+  updateUser,
+  deleteUser,
 } from '../controllers/userController.js';
 import { body, param } from 'express-validator';
-import { authenticateToken, authorizeRoles } from '../middleware/authMiddleware.js';
+import authenticateToken from '../middleware/authenticateToken.js';
+import { authorizeRoles } from '../middleware/authorize.js';
+import validateUserUpdate from '../validators/userUpdateValidator.js'; // Import your custom validator
 
 const router = express.Router();
 
 /**
- * @route   GET /api/users/me
- * @desc    Get current user's profile
- * @access  Private (Authenticated Users)
+ * @route   POST /api/users
+ * @desc    Create a new user
+ * @access  Admin
  */
-router.get('/me', authenticateToken, getUserProfile);
-
-/**
- * @route   PUT /api/users/me
- * @desc    Update current user's profile
- * @access  Private (Authenticated Users)
- */
-router.put(
-  '/me',
+router.post(
+  '/',
   authenticateToken,
+  authorizeRoles('admin'),
   [
+    // Validation middleware using express-validator
     body('name')
-      .optional()
-      .notEmpty()
-      .withMessage('Name cannot be empty')
       .isString()
-      .withMessage('Name must be a string'),
+      .withMessage('Name must be a string')
+      .notEmpty()
+      .withMessage('Name cannot be empty'),
     body('email')
-      .optional()
       .isEmail()
       .withMessage('Valid email is required')
-      .normalizeEmail(),
+      .notEmpty()
+      .withMessage('Email cannot be empty'),
     body('password')
-      .optional()
       .isLength({ min: 6 })
       .withMessage('Password must be at least 6 characters long'),
-    // Add more validations as needed
+    body('role')
+      .isIn(['admin', 'doctor', 'customer'])
+      .withMessage('Role must be one of admin, doctor, or customer'),
   ],
-  updateUserProfile
+  createUser
 );
 
 /**
- * @route   DELETE /api/users/me
- * @desc    Delete current user's profile
- * @access  Private (Authenticated Users)
+ * @route   GET /api/users
+ * @desc    Get all users
+ * @access  Admin
  */
-router.delete('/me', authenticateToken, deleteUserProfile);
+router.get('/', authenticateToken, authorizeRoles('admin'), getAllUsers);
+
+/**
+ * @route   GET /api/users/:id
+ * @desc    Get a user by ID
+ * @access  Admin or the user themselves
+ */
+router.get(
+  '/:id',
+  authenticateToken,
+  [
+    param('id')
+      .isInt()
+      .withMessage('User ID must be an integer')
+      .notEmpty()
+      .withMessage('User ID cannot be empty'),
+  ],
+  getUserById
+);
+
+/**
+ * @route   PUT /api/users/:id
+ * @desc    Update a user
+ * @access  Admin or the user themselves
+ */
+router.put(
+  '/:id',
+  authenticateToken,
+  [
+    param('id')
+      .isInt()
+      .withMessage('User ID must be an integer')
+      .notEmpty()
+      .withMessage('User ID cannot be empty'),
+    // Additional validations can be added for fields being updated
+    // For example, validating the role if admin is updating it
+  ],
+  validateUserUpdate,
+  updateUser
+);
+
+/**
+ * @route   DELETE /api/users/:id
+ * @desc    Delete a user
+ * @access  Admin
+ */
+router.delete(
+  '/:id',
+  authenticateToken,
+  authorizeRoles('admin'),
+  [
+    param('id')
+      .isInt()
+      .withMessage('User ID must be an integer')
+      .notEmpty()
+      .withMessage('User ID cannot be empty'),
+  ],
+  deleteUser
+);
 
 export default router;

@@ -9,7 +9,8 @@ import {
   deleteTimeslot,
 } from '../controllers/timeslotController.js';
 import { body, param } from 'express-validator';
-import { authenticateToken, authorizeRoles } from '../middleware/authMiddleware.js';
+import authenticateToken from '../middleware/authenticateToken.js';
+import { authorizeRoles } from '../middleware/authorize.js';
 
 const router = express.Router();
 

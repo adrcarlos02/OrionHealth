@@ -35,8 +35,8 @@ const User = sequelize.define(
   },
   {
     tableName: 'Users',
-    timestamps: true, // createdAt and updatedAt fields
+    timestamps: true, // Adds createdAt and updatedAt fields
   }
 );
 
-export default User; 
+export default User;

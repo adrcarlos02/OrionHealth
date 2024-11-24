@@ -7,7 +7,7 @@ import { body } from 'express-validator';
 const router = express.Router();
 
 /**
- * @route   POST /api/auth/register
+ * @route   POST /api/auth/registerUser
  * @desc    Register a new user
  * @access  Public
  */
@@ -36,7 +36,7 @@ router.post(
 );
 
 /**
- * @route   POST /api/auth/login
+ * @route   POST /api/auth/loginUser
  * @desc    Authenticate user and get token
  * @access  Public
  */

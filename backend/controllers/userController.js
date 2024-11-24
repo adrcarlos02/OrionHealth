@@ -1,98 +1,130 @@
-// controllers/userController.js
+// services/userService.js
 
-import { User } from '../models/index.js'; // Adjust the path as needed
-import { validationResult } from 'express-validator';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { User } from '../models/index.js';
 
 /**
- * Retrieves the authenticated user's profile.
- * @param {Object} req - Express request object.
- * @param {Object} res - Express response object.
+ * @desc    Create a new user (Admin Only)
+ * @route   POST /api/users
+ * @access  Admin
  */
-export const getUserProfile = async (req, res) => {
+export const createUser = async (req, res) => {
   try {
-    const userId = req.user.user_id; // Assuming authenticateToken attaches user info to req.user
-
-    const user = await User.findByPk(userId, {
-      attributes: { exclude: ['password_hash'] }, // Exclude sensitive information
-    });
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json(user);
-  } catch (error) {
-    console.error(`Get User Profile Error: ${error.message}`);
-    res.status(500).json({ message: 'Server error while fetching user profile' });
-  }
-};
-
-/**
- * Updates the authenticated user's profile.
- * @param {Object} req - Express request object.
- * @param {Object} res - Express response object.
- */
-export const updateUserProfile = async (req, res) => {
-  try {
-    const userId = req.user.user_id;
-
-    // Validate input
+    // Handle validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // Extract fields to update
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
-    // Find the user
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    // Delegate user creation to the service layer
+    const { user, token } = await userService.createUser({ name, email, password, role });
 
-    // Update fields if provided
-    if (name !== undefined) user.name = name;
-    if (email !== undefined) user.email = email;
-    if (password !== undefined) {
-      const salt = await bcrypt.genSalt(10);
-      user.password_hash = await bcrypt.hash(password, salt);
-    }
-
-    await user.save();
-
-    // Return the updated user profile without the password_hash
-    const updatedUser = await User.findByPk(userId, {
-      attributes: { exclude: ['password_hash'] },
-    });
-
-    res.json(updatedUser);
+    res.status(201).json({ token, user });
   } catch (error) {
-    console.error(`Update User Profile Error: ${error.message}`);
-    res.status(500).json({ message: 'Server error while updating user profile' });
+    console.error(`Create User Error: ${error.message}`);
+    if (error.status) {
+      res.status(error.status).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Server error while creating user' });
+    }
   }
 };
 
 /**
- * Deletes the authenticated user's profile.
- * @param {Object} req - Express request object.
- * @param {Object} res - Express response object.
+ * @desc    Get all users (Admin Only)
+ * @route   GET /api/users
+ * @access  Admin
  */
-export const deleteUserProfile = async (req, res) => {
+export const getAllUsers = async (req, res) => {
   try {
-    const userId = req.user.user_id;
+    // Delegate fetching all users to the service layer
+    const users = await userService.getAllUsers();
+    res.json(users);
+  } catch (error) {
+    console.error(`Get All Users Error: ${error.message}`);
+    if (error.status) {
+      res.status(error.status).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Server error while fetching users' });
+    }
+  }
+};
 
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+/**
+ * @desc    Get a user by ID (Admin or the user themselves)
+ * @route   GET /api/users/:id
+ * @access  Admin or the user themselves
+ */
+export const getUserById = async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+
+    // Check if the requester is admin or the user themselves
+    if (req.user.role !== 'admin' && req.user.user_id !== userId) {
+      return res.status(403).json({ message: 'Forbidden: Access is denied.' });
     }
 
-    await user.destroy();
-
-    res.json({ message: 'User profile deleted successfully' });
+    // Delegate fetching user by ID to the service layer
+    const user = await userService.getUserById(userId);
+    res.json(user);
   } catch (error) {
-    console.error(`Delete User Profile Error: ${error.message}`);
-    res.status(500).json({ message: 'Server error while deleting user profile' });
+    console.error(`Get User By ID Error: ${error.message}`);
+    if (error.status) {
+      res.status(error.status).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Server error while fetching user' });
+    }
+  }
+};
+
+/**
+ * @desc    Update a user (Admin or the user themselves)
+ * @route   PUT /api/users/:id
+ * @access  Admin or the user themselves
+ */
+export const updateUser = async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+
+    // Check if the requester is admin or the user themselves
+    if (req.user.role !== 'admin' && req.user.user_id !== userId) {
+      return res.status(403).json({ message: 'Forbidden: Access is denied.' });
+    }
+
+    // Delegate user update to the service layer
+    const updatedUser = await userService.updateUser(userId, req.body);
+    res.json(updatedUser);
+  } catch (error) {
+    console.error(`Update User Error: ${error.message}`);
+    if (error.status) {
+      res.status(error.status).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Server error while updating user' });
+    }
+  }
+};
+
+/**
+ * @desc    Delete a user (Admin Only)
+ * @route   DELETE /api/users/:id
+ * @access  Admin
+ */
+export const deleteUser = async (req, res) => {
+  try {
+    const userId = parseInt(req.params.id, 10);
+
+    // Delegate user deletion to the service layer
+    const result = await userService.deleteUser(userId);
+    res.json(result);
+  } catch (error) {
+    console.error(`Delete User Error: ${error.message}`);
+    if (error.status) {
+      res.status(error.status).json({ message: error.message });
+    } else {
+      res.status(500).json({ message: 'Server error while deleting user' });
+    }
   }
 };
